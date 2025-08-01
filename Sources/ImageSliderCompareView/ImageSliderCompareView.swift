@@ -58,7 +58,7 @@ struct ImageContentView: View {
                     .frame(height: 24)
                     .background(.thinMaterial)
                     .cornerRadius(100)
-                    .padding([.trailing, .top], 16)
+                    .padding([.trailing, .top, .leading], 16)
                 }
             }
             .background(
