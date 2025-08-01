@@ -242,7 +242,7 @@ public struct ImageSliderCompareView: View {
             )
             .disabled(config.animated)
         }
-        .frame(width: maxSize.width > 0 ? maxSize.width : .infinity , height: maxSize.height > 0 ? maxSize.height : .infinity)
+        .frame(width: maxSize.width > 0 ? maxSize.width : nil , height: maxSize.height > 0 ? maxSize.height : nil)
        
     }
     
