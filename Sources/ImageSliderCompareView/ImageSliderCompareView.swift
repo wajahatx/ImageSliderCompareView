@@ -9,6 +9,10 @@ public enum ImageSource {
     case image(UIImage?)
 }
 
+#Preview {
+    ImageSliderCompareView(before: URL(string: "https://1817831052.rsc.cdn77.org/appStuff/retake/reshot-new%20before/b-male/beforenm_2.webp")!, after: URL(string: "https://cdn.reshoot.imagine.art/after/after_5.webp")! , config: .init(animated : false, isHelpingLabelHidden : true))
+}
+
 struct ImageContentView: View {
     let imageSource: ImageSource
     let label: String
@@ -17,7 +21,7 @@ struct ImageContentView: View {
     let scale: CGFloat
     let dragOffset: CGSize
     let geometry: GeometryProxy
-    
+    @Binding var maxSize: CGSize
     var body: some View {
         Group {
             switch imageSource {
@@ -57,6 +61,14 @@ struct ImageContentView: View {
                     .padding([.trailing, .top], 16)
                 }
             }
+            .background(
+                GeometryReader { geo in
+                        Color.clear
+                        .onAppear(perform: {
+                            maxSize = CGSize(width: max(maxSize.width, geo.size.width), height: max(maxSize.height, geo.size.height))
+                        })
+                    }
+            )
             .clipped()
             .scaleEffect(scale)
             .offset(x: dragOffset.width, y: dragOffset.height)
@@ -74,6 +86,7 @@ public struct ImageSliderCompareView: View {
     @State private var isMovingForward = true
     @State private var shouldAnimate = false
     @State var timer: Timer?
+    @State var maxSize: CGSize = .zero
     @State var config: SliderConfig
     let beforeSource: ImageSource
     let afterSource: ImageSource
@@ -127,8 +140,9 @@ public struct ImageSliderCompareView: View {
                         config: config,
                         scale: scale,
                         dragOffset: dragOffset,
-                        geometry: geometry
+                        geometry: geometry, maxSize: $maxSize
                     )
+                    
                     .zIndex(1)
                     
                     // Before image
@@ -139,8 +153,9 @@ public struct ImageSliderCompareView: View {
                         config: config,
                         scale: scale,
                         dragOffset: dragOffset,
-                        geometry: geometry
+                        geometry: geometry, maxSize: $maxSize
                     )
+//
                     .zIndex(1)
                     .onAppear(perform: startAnimation)
                     .mask(
@@ -227,6 +242,8 @@ public struct ImageSliderCompareView: View {
             )
             .disabled(config.animated)
         }
+        .frame(width: maxSize.width > 0 ? maxSize.width : .infinity , height: maxSize.height > 0 ? maxSize.height : .infinity)
+       
     }
     
     private func resetImageState() {

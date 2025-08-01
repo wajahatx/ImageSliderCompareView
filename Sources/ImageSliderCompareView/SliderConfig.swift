@@ -22,7 +22,7 @@ public struct SliderConfig {
     
     
     public init(
-        contentType : ContentMode = .fill,
+        contentType : ContentMode = .fit,
         width: CGFloat = 2,
         start: CGFloat = 0.05,
         end: CGFloat = 0.95,
