@@ -3,6 +3,68 @@
 import SwiftUI
 import Foundation
 import CachedAsyncImage
+
+public enum ImageSource {
+    case url(URL?)
+    case image(UIImage?)
+}
+
+struct ImageContentView: View {
+    let imageSource: ImageSource
+    let label: String
+    let labelAlignment: Alignment
+    let config: SliderConfig
+    let scale: CGFloat
+    let dragOffset: CGSize
+    let geometry: GeometryProxy
+    
+    var body: some View {
+        Group {
+            switch imageSource {
+            case .url(let url):
+                CachedAsyncImage(url: url) { image in
+                    configuredImage(image)
+                } placeholder: {
+                    ProgressView()
+                }
+            case .image(let uiImage):
+                if let uiImage = uiImage {
+                    configuredImage(Image(uiImage: uiImage))
+                } else {
+                    ProgressView()
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private func configuredImage(_ image: Image) -> some View {
+        image
+            .resizable()
+            .cornerRadius(config.imageCornerRadius)
+            .overlay(alignment: labelAlignment) {
+                if !config.animated && !config.isHelpingLabelHidden {
+                    ZStack {
+                        Text(label)
+                            .font(.footnote)
+                            .fontWeight(.bold)
+                            .foregroundStyle(UIColor.label.swiftUiColor)
+                            .padding(.horizontal, 8)
+                    }
+                    .frame(height: 24)
+                    .background(.thinMaterial)
+                    .cornerRadius(100)
+                    .padding([.trailing, .top], 16)
+                }
+            }
+            .clipped()
+            .scaleEffect(scale)
+            .offset(x: dragOffset.width, y: dragOffset.height)
+            .aspectRatio(contentMode: config.contentType)
+            .frame(width: geometry.size.width, height: geometry.size.height)
+    }
+}
+
 public struct ImageSliderCompareView: View {
     @State private var scale: CGFloat = 1.0
     @State private var lastScaleValue: CGFloat = 1
@@ -13,83 +75,72 @@ public struct ImageSliderCompareView: View {
     @State private var shouldAnimate = false
     @State var timer: Timer?
     @State var config: SliderConfig
-    let before: URL?
-    let after: URL?
+    let beforeSource: ImageSource
+    let afterSource: ImageSource
     
+    // MARK: - Initializers
+    
+    // URL-based initializer (existing)
     public init(before: URL?, after: URL?, config: SliderConfig = SliderConfig()) {
         self.config = config
-        self.before = before
-        self.after = after
+        self.beforeSource = .url(before)
+        self.afterSource = .url(after)
+    }
+    
+    // UIImage-based initializer
+    public init(beforeImage: UIImage?, afterImage: UIImage?, config: SliderConfig = SliderConfig()) {
+        self.config = config
+        self.beforeSource = .image(beforeImage)
+        self.afterSource = .image(afterImage)
+    }
+    
+    // Mixed initializer (before: UIImage, after: URL)
+    public init(beforeImage: UIImage?, after: URL?, config: SliderConfig = SliderConfig()) {
+        self.config = config
+        self.beforeSource = .image(beforeImage)
+        self.afterSource = .url(after)
+    }
+    
+    // Mixed initializer (before: URL, after: UIImage)
+    public init(before: URL?, afterImage: UIImage?, config: SliderConfig = SliderConfig()) {
+        self.config = config
+        self.beforeSource = .url(before)
+        self.afterSource = .image(afterImage)
+    }
+    
+    // ImageSource-based initializer (most flexible)
+    public init(beforeSource: ImageSource, afterSource: ImageSource, config: SliderConfig = SliderConfig()) {
+        self.config = config
+        self.beforeSource = beforeSource
+        self.afterSource = afterSource
     }
 
     public var body: some View {
         GeometryReader { geometry in
             VStack {
                 ZStack(alignment: .leading) {
-                    CachedAsyncImage(url: after) { image in
-                        image
-                            .resizable()
-                            .cornerRadius(config.imageCornerRadius)
-                            .overlay(alignment: .topTrailing) {
-                                if !config.animated && !config.isHelpingLabelHidden {
-                                    ZStack {
-                                        Text("After")
-                                            .font(.footnote)
-                                            .fontWeight(.bold)
-                                            .foregroundStyle(UIColor.label.swiftUiColor)
-                                            .padding(.horizontal,8)
-                                        
-                                    }
-                                    .frame(height: 24)
-                                    .background(
-                                        .thinMaterial)
-                                    .cornerRadius(100)
-                                    .padding([.trailing, .top], 16)
-                                }
-                            }
-                            .clipped()
-                            .scaleEffect(scale)
-                          
-
-                    } placeholder: {
-                        ProgressView()
-                    }
-                    .offset(x: dragOffset.width, y: dragOffset.height)
-                    .aspectRatio(contentMode: config.contentType)
-                    .frame(width: geometry.size.width, height: geometry.size.height)
+                    // After image
+                    ImageContentView(
+                        imageSource: afterSource,
+                        label: "After",
+                        labelAlignment: .topTrailing,
+                        config: config,
+                        scale: scale,
+                        dragOffset: dragOffset,
+                        geometry: geometry
+                    )
                     .zIndex(1)
                     
-                    CachedAsyncImage(url: before) { image in
-                        image
-                            .resizable()
-                            .cornerRadius(config.imageCornerRadius)
-                            .zIndex(1)
-                            .overlay(alignment: .topLeading) {
-                                if !config.animated && !config.isHelpingLabelHidden {
-                                    ZStack {
-                                        Text("Before")
-                                            .font(.footnote)
-                                            .fontWeight(.bold)
-                                            .foregroundStyle(UIColor.label.swiftUiColor)
-                                            .padding(.horizontal,8)
-                                    }
-                                    .frame(height: 24)
-                                    .background(
-                                        .thinMaterial)
-                                    .cornerRadius(100)
-                                    .padding([.leading, .top], 16)
-                                }
-                            }
-                            .clipped()
-                            .scaleEffect(scale)
-                          
-
-                    } placeholder: {
-                        ProgressView()
-                    }
-                    .offset(x: dragOffset.width, y: dragOffset.height)
-                    .aspectRatio(contentMode: config.contentType)
-                    .frame(width: geometry.size.width, height: geometry.size.height)
+                    // Before image
+                    ImageContentView(
+                        imageSource: beforeSource,
+                        label: "Before",
+                        labelAlignment: .topLeading,
+                        config: config,
+                        scale: scale,
+                        dragOffset: dragOffset,
+                        geometry: geometry
+                    )
                     .zIndex(1)
                     .onAppear(perform: startAnimation)
                     .mask(
@@ -98,6 +149,7 @@ public struct ImageSliderCompareView: View {
                             .ignoresSafeArea()
                             .offset(x: -geometry.size.width / 2)
                     )
+                    
                     SliderBarView(config: config)
                         .offset(x: geometry.size.width * self.slider)
                         .zIndex(2)
@@ -206,4 +258,3 @@ public struct ImageSliderCompareView: View {
         }
     }
 }
-
