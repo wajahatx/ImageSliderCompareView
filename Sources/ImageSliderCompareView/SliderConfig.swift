@@ -6,6 +6,8 @@
 //
 
 import Foundation
+import SwiftUI
+import UIKit
 public struct SliderConfig {
     public let contentType : ContentMode
     public let width: CGFloat

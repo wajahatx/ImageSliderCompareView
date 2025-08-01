@@ -186,18 +186,20 @@ public struct ImageSliderCompareView: View {
     private func startAnimation() {
         if config.animated {
             timer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) { timer in
-                if slider.rounded(decimalPlaces: 2) == config.start {
-                    isMovingForward = true
-                } else if slider.rounded(decimalPlaces: 2) == config.end {
-                    isMovingForward = false
-                }
-                if isMovingForward {
-                    withAnimation {
-                        slider += 0.005
+                Task { @MainActor in
+                    if slider.rounded(decimalPlaces: 2) == config.start {
+                        isMovingForward = true
+                    } else if slider.rounded(decimalPlaces: 2) == config.end {
+                        isMovingForward = false
                     }
-                } else {
-                    withAnimation {
-                        slider -= 0.005
+                    if isMovingForward {
+                        withAnimation {
+                            slider += 0.005
+                        }
+                    } else {
+                        withAnimation {
+                            slider -= 0.005
+                        }
                     }
                 }
             }

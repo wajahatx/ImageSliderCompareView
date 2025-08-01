@@ -6,6 +6,8 @@
 //
 
 import Foundation
+import UIKit
+import SwiftUI
 extension CGFloat {
     func rounded(decimalPlaces: Int) -> CGFloat {
         let multiplier = pow(10.0, CGFloat(decimalPlaces))
