@@ -9,7 +9,6 @@ import Foundation
 import SwiftUI
 struct SliderBarView: View {
     @State var config: SliderConfig
-    @State private var width : CGFloat = 2
     var body: some View {
         ZStack(alignment: .center){
             if !config.animated{
@@ -40,7 +39,7 @@ struct SliderBarView: View {
             }
             
         }
-        .frame(minWidth: width, maxWidth: width, maxHeight: .infinity)
+        .frame(minWidth: config.width, maxWidth: config.width, maxHeight: .infinity)
         .background(config.sliderColor)
     }
 }
