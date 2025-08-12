@@ -88,44 +88,51 @@ public struct ImageSliderCompareView: View {
     @State var timer: Timer?
     @State var maxSize: CGSize = .zero
     @State var config: SliderConfig
-    let beforeSource: ImageSource
-    let afterSource: ImageSource
+    @Binding var beforeSource: ImageSource
+    @Binding var afterSource: ImageSource
     
     // MARK: - Initializers
     
-    // URL-based initializer (existing)
+    // Binding-based initializer (primary)
+    public init(beforeSource: Binding<ImageSource>, afterSource: Binding<ImageSource>, config: SliderConfig = SliderConfig()) {
+        self._beforeSource = beforeSource
+        self._afterSource = afterSource
+        self.config = config
+    }
+    
+    // URL-based initializer (convenience - creates State internally)
     public init(before: URL?, after: URL?, config: SliderConfig = SliderConfig()) {
+        self._beforeSource = .constant(.url(before))
+        self._afterSource = .constant(.url(after))
         self.config = config
-        self.beforeSource = .url(before)
-        self.afterSource = .url(after)
     }
     
-    // UIImage-based initializer
+    // UIImage-based initializer (convenience)
     public init(beforeImage: UIImage?, afterImage: UIImage?, config: SliderConfig = SliderConfig()) {
+        self._beforeSource = .constant(.image(beforeImage))
+        self._afterSource = .constant(.image(afterImage))
         self.config = config
-        self.beforeSource = .image(beforeImage)
-        self.afterSource = .image(afterImage)
     }
     
-    // Mixed initializer (before: UIImage, after: URL)
+    // Mixed initializer (before: UIImage, after: URL) (convenience)
     public init(beforeImage: UIImage?, after: URL?, config: SliderConfig = SliderConfig()) {
+        self._beforeSource = .constant(.image(beforeImage))
+        self._afterSource = .constant(.url(after))
         self.config = config
-        self.beforeSource = .image(beforeImage)
-        self.afterSource = .url(after)
     }
     
-    // Mixed initializer (before: URL, after: UIImage)
+    // Mixed initializer (before: URL, after: UIImage) (convenience)
     public init(before: URL?, afterImage: UIImage?, config: SliderConfig = SliderConfig()) {
+        self._beforeSource = .constant(.url(before))
+        self._afterSource = .constant(.image(afterImage))
         self.config = config
-        self.beforeSource = .url(before)
-        self.afterSource = .image(afterImage)
     }
     
-    // ImageSource-based initializer (most flexible)
+    // ImageSource-based initializer (convenience)
     public init(beforeSource: ImageSource, afterSource: ImageSource, config: SliderConfig = SliderConfig()) {
+        self._beforeSource = .constant(beforeSource)
+        self._afterSource = .constant(afterSource)
         self.config = config
-        self.beforeSource = beforeSource
-        self.afterSource = afterSource
     }
 
     public var body: some View {
